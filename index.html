@@ -24,8 +24,8 @@
     }
 
     @keyframes spin {
-      0% {transform: rotate(0deg)}
-      100% {transform: rotate(360deg)}
+      0% { transform: rotate(0deg) }
+      100% { transform: rotate(360deg) }
     }
   </style>
 </head>
@@ -92,7 +92,7 @@
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // Danh sách học sinh (57 HS + Nguyễn Minh Trí + Nguyễn Quang Huy)
+    // Danh sách 57 HS + Nguyễn Minh Trí + Nguyễn Quang Huy
     const studentList = [
       { name: "Nguyễn Đặng Minh An", gender: "Nữ" },
       { name: "Cung Đức Anh", gender: "Nam" },
@@ -189,8 +189,7 @@
       setTimeout(() => {
         document.getElementById("loading-modal").classList.add("hidden");
         document.getElementById("loading-modal").classList.remove("flex");
-        alert("✅ Dữ liệu đã được lưu thành công!");
-      }, 800);
+      }, 600);
     }
 
     function listenForDataChanges() {
@@ -220,10 +219,10 @@
         opt.value = w; opt.textContent = w;
         weekSelect.appendChild(opt);
       });
-      monthSelect.addEventListener("change", renderTable);
-      weekSelect.addEventListener("change", renderTable);
       monthSelect.value = months[0];
       weekSelect.value = weeks[0];
+      monthSelect.addEventListener("change", renderTable);
+      weekSelect.addEventListener("change", renderTable);
     }
 
     function renderTable() {
@@ -263,12 +262,15 @@
       });
     }
 
+    // Debounce auto-save
+    let saveTimeout;
     window.updateData = (studentName, field, value) => {
       const m = monthSelect.value;
       const w = weekSelect.value;
       if (!studentData[studentName]) studentData[studentName] = {};
       if (!studentData[studentName][m]) studentData[studentName][m] = {};
       if (!studentData[studentName][m][w]) studentData[studentName][m][w] = {};
+
       if (field === "score") value = value === "" ? null : Number(value);
       if (field === "name") {
         studentData[value] = studentData[studentName];
@@ -276,7 +278,10 @@
       } else {
         studentData[studentName][m][w][field] = value;
       }
-      save();
+
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => save(), 500);
+
       renderTable();
     };
 
