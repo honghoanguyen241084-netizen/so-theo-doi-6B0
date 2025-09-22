@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sổ Theo Dõi Thi Đua - Lớp 6B0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+    .award-card{background:#fff;border-radius:12px;padding:1rem;
+      box-shadow:0 4px 6px rgba(0,0,0,.1);transition:transform .2s}
+    .award-card:hover{transform:translateY(-4px)}
+  </style>
+</head>
+<body class="p-4 md:p-6">
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl shadow-lg p-6 mb-6">
+    <h1 class="text-4xl font-extrabold">📘 Sổ Theo Dõi Thi Đua - Lớp 6B0</h1>
+    <p class="text-indigo-200 mt-1 text-lg">Năm học 2025 - 2026</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    <select id="month-select" class="p-2 rounded border border-gray-300"></select>
+    <select id="week-select" class="p-2 rounded border border-gray-300"></select>
+    <button onclick="exportExcel('week')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tuần)</button>
+    <button onclick="exportExcel('month')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tháng)</button>
+  </div>
+
+  <!-- Student Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full border rounded-xl overflow-hidden shadow">
+      <thead class="bg-indigo-50">
+        <tr>
+          <th class="px-4 py-2 text-left font-bold">Học sinh</th>
+          <th class="px-4 py-2 text-center font-bold w-20">Điểm</th>
+          <th class="px-4 py-2 text-center font-bold w-28">Xếp loại</th>
+          <th class="px-4 py-2 font-bold">👍 Ưu điểm</th>
+          <th class="px-4 py-2 font-bold">✏️ Cần cố gắng</th>
+          <th class="px-4 py-2 text-center font-bold">✨ Nhận xét Cô Hoa</th>
+        </tr>
+      </thead>
+      <tbody id="student-table-body" class="divide-y divide-gray-200 bg-white"></tbody>
+    </table>
+  </div>
+
+  <!-- Awards Section -->
+  <div class="mt-10 text-center">
+    <button onclick="generateAwards()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold shadow hover:scale-105">🏆 Tổng kết & Trao danh hiệu tuần</button>
+    <div id="awards-container" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+  </div>
+
+  <!-- Firebase + Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔑 Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
+      authDomain: "banthidua6b0.firebaseapp.com",
+      projectId: "banthidua6b0",
+      storageBucket: "banthidua6b0.appspot.com",
+      messagingSenderId: "743525041700",
+      appId: "1:743525041700:web:c76f51122303762212bab1",
+      measurementId: "G-KK8BHC3E12"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const dataDocRef = doc(db, "classData", "lop6B0");
+
+    // Danh sách HS
+    const studentList = [
+      "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh","Nguyễn Huy Bảo Anh",
+      "Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi","Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí",
+      "Phạm Khương Duy","Trần Nguyên Duy","Đỗ Quốc Đạt","Lê Tiến Đạt","Quách Trung Đức","Phạm Minh Đức",
+      "Lại Tiến Đức","Trần Ngọc Hân","Cao Hoàng","Cung Đức Huy","Nguyễn Minh Khuê","Hoàng Mi Lan",
+      "Vũ My Lan","Đàm Gia Linh","Lê Thảo Linh","Đặng Thành Minh","Vương Quang Minh","Vũ Trần Tiến Minh",
+      "Đầu Đại Minh","Đặng Gia Minh","Ngô Hoàng My","Đặng Kim Ngân","Nguyễn Khánh Ngọc","Bùi Bảo Nguyên",
+      "Lý Hoàng Minh Nhật","Ngô Hải Minh","Dương Yến Nhi","Vũ Khánh Nhi","Trịnh Nam Phong","Nguyễn Hà Phương",
+      "Dương Đại Quang","Mai Tiến Thành","Trần Ngọc Thảo","Đặng Anh Thư","Nguyễn Quang Thiện","Nguyễn Đình Thi",
+      "Trần Phương Thảo","Trịnh Ngọc Minh Trang","Nguyễn Bảo Trâm","Nguyễn Đức Trí","Trần Trung","Trần Quang Vinh",
+      "Lương Uyên Bảo Trân","Nguyễn Quang Vinh","Nguyễn Minh Trí","Nguyễn Quang Huy"
+    ];
+
+    const months = ["Tháng 9","Tháng 10","Tháng 11","Tháng 12","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5"];
+    const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
+
+    let studentData = {};
+
+    // Xếp loại
+    function getRanking(score) {
+      if (score === null || score === "") return { rank:"Chưa có", color:"bg-gray-200 text-gray-700" };
+      if (score >= 87) return { rank:"Xuất sắc", color:"bg-green-100 text-green-800" };
+      if (score >= 80) return { rank:"Tốt", color:"bg-blue-100 text-blue-800" };
+      if (score >= 65) return { rank:"Khá", color:"bg-yellow-100 text-yellow-800" };
+      if (score >= 50) return { rank:"Đạt", color:"bg-orange-100 text-orange-800" };
+      return { rank:"Chưa đạt", color:"bg-red-100 text-red-800" };
+    }
+
+    // Tạo nhận xét "Cô Hoa AI"
+    function generateAdvice(adv, iss) {
+      let advice = "";
+      if (adv) advice += `Cô khen con ${adv}. `;
+      if (iss) advice += `Nhưng cần chú ý: ${iss}. `;
+      if (!adv && !iss) advice = "Cô mong con nỗ lực hơn trong tuần tới.";
+      return advice.trim();
+    }
+
+    // Render bảng
+    const monthSelect = document.getElementById("month-select");
+    const weekSelect = document.getElementById("week-select");
+    const tableBody = document.getElementById("student-table-body");
+
+    months.forEach(m => { let o=document.createElement("option"); o.value=m;o.textContent=m;monthSelect.appendChild(o); });
+    weeks.forEach(w => { let o=document.createElement("option"); o.value=w;o.textContent=w;weekSelect.appendChild(o); });
+
+    async function renderTable(){
+      const selectedMonth = monthSelect.value;
+      const selectedWeek = weekSelect.value;
+      tableBody.innerHTML = "";
+      studentList.forEach(name=>{
+        if(!studentData[name]) studentData[name] = {};
+        if(!studentData[name][selectedMonth]) studentData[name][selectedMonth] = {};
+        if(!studentData[name][selectedMonth][selectedWeek]) studentData[name][selectedMonth][selectedWeek] = {score:null,adv:"",iss:"",advice:""};
+        const data = studentData[name][selectedMonth][selectedWeek];
+        const ranking = getRanking(data.score);
+
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td class="px-4 py-2">${name}</td>
+          <td class="px-2 py-2 text-center"><input type="number" value="${data.score??""}" class="w-20 p-1 border rounded text-center"
+            onchange="updateData('${name}','score',this.value)"></td>
+          <td class="px-2 py-2 text-center"><span class="px-2 py-1 rounded-full ${ranking.color}">${ranking.rank}</span></td>
+          <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-green-800" rows="2"
+            onchange="updateData('${name}','adv',this.value)">${data.adv}</textarea></td>
+          <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-pink-600" rows="2"
+            onchange="updateData('${name}','iss',this.value)">${data.iss}</textarea></td>
+          <td class="px-2 py-2 text-center"><button class="text-xl hover:scale-125" onclick="getAdvice('${name}')">✨</button></td>`;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Auto-save
+    let saveTimer;
+    window.updateData=(name,field,value)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      if(field==="score") value=value===""?null:Number(value);
+      studentData[name][m][w][field]=value;
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(()=>setDoc(dataDocRef,{studentData}, {merge:true}),300);
+      renderTable();
+    };
+
+    // Nhận xét Cô Hoa AI
+    window.getAdvice=(name)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      const d=studentData[name][m][w];
+      const advice=generateAdvice(d.adv,d.iss);
+      alert(`Nhận xét của Cô Hoa:\n\n${advice}`);
+      studentData[name][m][w].advice=advice;
+      setDoc(dataDocRef,{studentData},{merge:true});
+    };
+
+    // Load realtime từ Firestore
+    onSnapshot(dataDocRef,(docSnap)=>{
+      if(docSnap.exists()) studentData=docSnap.data().studentData;
+      else studentData={};
+      renderTable();
+    });
+
+    monthSelect.value=months[0]; weekSelect.value=weeks[0];
+    monthSelect.onchange=renderTable; weekSelect.onchange=renderTable;
+
+    // Xuất Excel
+    window.exportExcel=(type)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng","Nhận xét Cô Hoa"]]; let i=1;
+      studentList.forEach(name=>{
+        if(studentData[name] && studentData[name][m]){
+          if(type==="week"){
+            const d=studentData[name][m][w]; if(!d) return;
+            aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
+          } else {
+            weeks.forEach(ww=>{
+              const d=studentData[name][m][ww]; if(!d) return;
+              aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
+            });
+          }
+        }
+      });
+      const ws=XLSX.utils.aoa_to_sheet(aoa); const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Thi đua"); 
+      XLSX.writeFile(wb,`ThiDua_${m}_${type}.xlsx`);
+    };
+
+    // Danh hiệu
+    const awardsContainer=document.getElementById("awards-container");
+    window.generateAwards=()=>{ 
+      const m=monthSelect.value,w=weekSelect.value;
+      let awards={excellent:[],hardworking:[],progressive:[],disciplined:[]};
+      studentList.forEach(name=>{
+        const d=studentData[name]?.[m]?.[w]; if(!d) return;
+        if(d.score>=87) awards.excellent.push(name);
+        if(d.adv?.toLowerCase().includes("phát biểu")||d.adv?.includes("10")) awards.hardworking.push(name);
+        if(!d.iss) awards.disciplined.push(name);
+      });
+      awardsContainer.innerHTML="";
+      const arr=[
+        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent,color:"from-green-400 to-cyan-500"},
+        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking,color:"from-yellow-400 to-orange-500"},
+        {id:"progressive",title:"Chiến binh tiến bộ 🚀",list:awards.progressive,color:"from-blue-400 to-violet-500"},
+        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined,color:"from-pink-500 to-rose-500"}
+      ];
+      arr.forEach(a=>{
+        const card=document.createElement("div"); card.className="award-card bg-gradient-to-r "+a.color+" text-white";
+        let html=`<h3 class="font-bold mb-2">${a.title}</h3>`;
+        html+=a.list.length? `<ul>${a.list.map(n=>`<li>${n}</li>`).join("")}</ul>` : `<p class="italic">Chưa có học sinh nào</p>`;
+        card.innerHTML=html; awardsContainer.appendChild(card);
+      });
+    };
+  </script>
+</body>
+</html>
