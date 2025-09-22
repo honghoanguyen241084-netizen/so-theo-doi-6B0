@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sổ Theo Dõi Thi Đua - Lớp 6B0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="p-6 bg-gray-100">
-  <h1 class="text-3xl font-bold mb-4 text-center">Sổ Theo Dõi Thi Đua (Lớp 6B0)</h1>
+<body class="p-6 bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 min-h-screen">
+  <h1 class="text-4xl font-extrabold mb-6 text-center text-indigo-700">📘 Sổ Theo Dõi Thi Đua - Lớp 6B0</h1>
 
-  <div class="mb-4 flex gap-4 justify-center">
-    <select id="month-select" class="border p-2 rounded"></select>
-    <select id="week-select" class="border p-2 rounded"></select>
-    <button onclick="exportExcel('week')" class="bg-blue-500 text-white px-4 py-2 rounded">Xuất Excel (Tuần)</button>
-    <button onclick="exportExcel('month')" class="bg-green-500 text-white px-4 py-2 rounded">Xuất Excel (Tháng)</button>
+  <div class="mb-6 flex flex-wrap gap-4 justify-center">
+    <select id="month-select" class="border p-2 rounded-lg shadow bg-white"></select>
+    <select id="week-select" class="border p-2 rounded-lg shadow bg-white"></select>
+    <button onclick="exportExcel('week')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow">Xuất Excel (Tuần)</button>
+    <button onclick="exportExcel('month')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">Xuất Excel (Tháng)</button>
   </div>
 
   <div class="overflow-x-auto">
-    <table class="min-w-full bg-white border" id="student-table">
-      <thead class="bg-gray-200">
+    <table class="min-w-full bg-white border rounded-xl shadow-lg" id="student-table">
+      <thead class="bg-indigo-100 text-indigo-800">
         <tr>
           <th class="p-2">Học sinh</th>
-          <th class="p-2">Điểm</th>
+          <th class="p-2 w-28">Điểm</th>
+          <th class="p-2">Xếp loại</th>
           <th class="p-2">Ưu điểm</th>
           <th class="p-2">Cần cố gắng</th>
         </tr>
@@ -31,12 +32,11 @@
     </table>
   </div>
 
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-    // ⚡ Thay cấu hình này bằng Firebase config của bạn
+    // ⚡ Firebase config của bạn
     const firebaseConfig = {
       apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
       authDomain: "banthidua6b0.firebaseapp.com",
@@ -54,7 +54,7 @@
     const months = ["Tháng 9","Tháng 10","Tháng 11","Tháng 12","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5"];
     const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
 
-    // ✅ Danh sách 57 học sinh từ file Excel
+    // ✅ Danh sách 57 học sinh chính xác từ Excel
     const studentList = [
       { name: "Nguyễn Đặng Minh An", gender: "Nữ" }, { name: "Cung Đức Anh", gender: "Nam" }, { name: "Trần Quỳnh Anh", gender: "Nữ" },
       { name: "Nguyễn Diệp Anh", gender: "Nữ" }, { name: "Hoàng Mai Anh", gender: "Nữ" }, { name: "Nguyễn Huy Bảo Anh", gender: "Nam" },
@@ -80,14 +80,21 @@
     let studentData = {};
 
     function populateSelectors(){
-      const monthSelect = document.getElementById("month-select");
-      const weekSelect = document.getElementById("week-select");
+      const monthSelect=document.getElementById("month-select");
+      const weekSelect=document.getElementById("week-select");
       months.forEach(m=>{let o=document.createElement("option");o.value=m;o.textContent=m;monthSelect.appendChild(o);});
       weeks.forEach(w=>{let o=document.createElement("option");o.value=w;o.textContent=w;weekSelect.appendChild(o);});
-      monthSelect.value = months[0];
-      weekSelect.value = weeks[0];
-      monthSelect.onchange=renderTable;
-      weekSelect.onchange=renderTable;
+      monthSelect.value=months[0]; weekSelect.value=weeks[0];
+      monthSelect.onchange=renderTable; weekSelect.onchange=renderTable;
+    }
+
+    function getRank(score){
+      if(score===null||score==="") return {text:"Chưa có",color:"bg-gray-200 text-gray-600"};
+      if(score>=87) return {text:"Xuất sắc",color:"bg-green-200 text-green-800"};
+      if(score>=80) return {text:"Tốt",color:"bg-blue-200 text-blue-800"};
+      if(score>=65) return {text:"Khá",color:"bg-yellow-200 text-yellow-800"};
+      if(score>=50) return {text:"Đạt",color:"bg-orange-200 text-orange-800"};
+      return {text:"Chưa đạt",color:"bg-red-200 text-red-800"};
     }
 
     function renderTable(){
@@ -101,29 +108,39 @@
         if(!studentData[s.name][m]) studentData[s.name][m]={};
         if(!studentData[s.name][m][w]) studentData[s.name][m][w]={score:null,advantages:"",issues:""};
 
-        const data=studentData[s.name][m][w];
+        const d=studentData[s.name][m][w];
+        const rank=getRank(d.score);
         const tr=document.createElement("tr");
+        tr.className="hover:bg-indigo-50";
         tr.innerHTML=`
           <td class="border p-2">
-            <input type="text" value="${s.name}" class="border p-1 w-full"
+            <input type="text" value="${s.name}" class="border p-1 w-full rounded"
               onchange="updateName('${s.name}',this.value)">
           </td>
-          <td class="border p-2"><input type="number" value="${data.score??''}" class="border p-1 w-20" onchange="updateData('${s.name}','score',this.value)"></td>
-          <td class="border p-2"><textarea class="border p-1 w-full" onchange="updateData('${s.name}','advantages',this.value)">${data.advantages}</textarea></td>
-          <td class="border p-2"><textarea class="border p-1 w-full" onchange="updateData('${s.name}','issues',this.value)">${data.issues}</textarea></td>`;
+          <td class="border p-2 text-center">
+            <input type="number" value="${d.score??''}" class="border p-1 w-24 text-center rounded font-semibold"
+              onchange="updateData('${s.name}','score',this.value)">
+          </td>
+          <td class="border p-2 text-center">
+            <span class="px-3 py-1 rounded-full text-sm ${rank.color}">${rank.text}</span>
+          </td>
+          <td class="border p-2"><textarea class="border p-1 w-full rounded" onchange="updateData('${s.name}','advantages',this.value)">${d.advantages}</textarea></td>
+          <td class="border p-2"><textarea class="border p-1 w-full rounded" onchange="updateData('${s.name}','issues',this.value)">${d.issues}</textarea></td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-    window.updateData = (studentName,field,value)=>{
+    window.updateData=(studentName,field,value)=>{
       const m=document.getElementById("month-select").value;
       const w=document.getElementById("week-select").value;
       if(field==="score") value=value===""?null:Number(value);
       studentData[studentName][m][w][field]=value;
       save();
+      renderTable();
     };
 
-    window.updateName = (oldName,newName)=>{
+    window.updateName=(oldName,newName)=>{
       if(!newName.trim()) return;
       studentData[newName]=studentData[oldName];
       delete studentData[oldName];
@@ -137,21 +154,16 @@
 
     function listen(){
       onSnapshot(dataDocRef,(snap)=>{
-        if(snap.exists()){
-          studentData=snap.data().studentData||{};
-          renderTable();
-        } else {
-          studentData={};
-          renderTable();
-        }
+        if(snap.exists()){ studentData=snap.data().studentData||{}; renderTable(); }
+        else { studentData={}; renderTable(); }
       });
     }
 
-    window.exportExcel = async (type) => {
+    window.exportExcel=(type)=>{
       const m=document.getElementById("month-select").value;
       const w=document.getElementById("week-select").value;
       const dataToExport=[];
-      const header=["STT","Họ và Tên","Điểm","Ưu điểm","Cần cố gắng"];
+      const header=["STT","Họ và Tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng"];
       if(type==="month") header.splice(2,0,"Tuần");
       dataToExport.push(header);
       let stt=1;
@@ -159,11 +171,11 @@
         if(studentData[s.name]){
           if(type==="week"){
             const d=studentData[s.name][m][w];
-            if(d) dataToExport.push([stt++,s.name,d.score??"",d.advantages,d.issues]);
+            if(d){ dataToExport.push([stt++,s.name,d.score??"",getRank(d.score).text,d.advantages,d.issues]); }
           }else{
             for(const wk of weeks){
               const d=studentData[s.name][m][wk];
-              if(d) dataToExport.push([stt++,s.name,wk,d.score??"",d.advantages,d.issues]);
+              if(d){ dataToExport.push([stt++,s.name,wk,d.score??"",getRank(d.score).text,d.advantages,d.issues]); }
             }
           }
         }
@@ -174,10 +186,7 @@
       XLSX.writeFile(wb,`ThiDua_${m.replace(" ","_")}_${type}.xlsx`);
     };
 
-    document.addEventListener("DOMContentLoaded",()=>{
-      populateSelectors();
-      listen();
-    });
+    document.addEventListener("DOMContentLoaded",()=>{ populateSelectors(); listen(); });
   </script>
 </body>
 </html>
