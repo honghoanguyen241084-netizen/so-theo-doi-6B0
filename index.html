@@ -9,9 +9,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-    .award-card{background:#fff;border-radius:12px;padding:1rem;
+    .award-card {background:#fff;border-radius:12px;padding:1rem;
       box-shadow:0 4px 6px rgba(0,0,0,.1);transition:transform .2s}
-    .award-card:hover{transform:translateY(-4px)}
+    .award-card:hover {transform:translateY(-4px)}
   </style>
 </head>
 <body class="p-4 md:p-6">
@@ -55,9 +55,9 @@
   <!-- Firebase + Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 🔑 Firebase config (thay bằng config của cô nếu cần)
+    // 🔑 Firebase config (copy đúng từ Firebase console)
     const firebaseConfig = {
       apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
       authDomain: "banthidua6b0.firebaseapp.com",
@@ -71,7 +71,7 @@
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // Danh sách 57 HS chuẩn
+    // Danh sách 57 HS
     const studentList = [
       "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh","Nguyễn Huy Bảo Anh",
       "Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi","Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí",
@@ -87,7 +87,6 @@
 
     const months = ["Tháng 9","Tháng 10","Tháng 11","Tháng 12","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5"];
     const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
-
     let studentData = {};
 
     // Xếp loại
@@ -133,14 +132,14 @@
       });
     }
 
-    // Auto-save (debounce 500ms)
+    // Auto-save (debounce 300ms)
     let saveTimer;
     window.updateData=(name,field,value)=>{
       const m=monthSelect.value,w=weekSelect.value;
       if(field==="score") value=value===""?null:Number(value);
       studentData[name][m][w][field]=value;
       clearTimeout(saveTimer);
-      saveTimer=setTimeout(()=>setDoc(dataDocRef,{studentData}, {merge:true}),500);
+      saveTimer=setTimeout(()=>setDoc(dataDocRef,{studentData},{merge:true}),300);
       renderTable();
     };
 
@@ -179,7 +178,7 @@
 
     // Danh hiệu
     const awardsContainer=document.getElementById("awards-container");
-    window.generateAwards=()=>{
+    window.generateAwards=()=>{ 
       const m=monthSelect.value,w=weekSelect.value;
       let awards={excellent:[],hardworking:[],progressive:[],disciplined:[]};
       studentList.forEach(name=>{
@@ -190,10 +189,10 @@
       });
       awardsContainer.innerHTML="";
       const arr=[
-        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent,color:"from-green-400 to-cyan-500"},
-        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking,color:"from-yellow-400 to-orange-500"},
-        {id:"progressive",title:"Chiến binh tiến bộ 🚀",list:awards.progressive,color:"from-blue-400 to-violet-500"},
-        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined,color:"from-pink-500 to-rose-500"}
+        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent},
+        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking},
+        {id:"progressive",title:"Chiến binh tiến bộ 🚀",list:awards.progressive},
+        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined}
       ];
       arr.forEach(a=>{
         const card=document.createElement("div"); card.className="award-card";
