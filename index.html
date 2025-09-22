@@ -36,10 +36,11 @@
       <thead class="bg-indigo-50">
         <tr>
           <th class="px-4 py-2 text-left font-bold">Học sinh</th>
-          <th class="px-4 py-2 text-center font-bold w-24">Điểm</th>
-          <th class="px-4 py-2 text-center font-bold w-32">Xếp loại</th>
+          <th class="px-4 py-2 text-center font-bold w-20">Điểm</th>
+          <th class="px-4 py-2 text-center font-bold w-28">Xếp loại</th>
           <th class="px-4 py-2 font-bold">👍 Ưu điểm</th>
           <th class="px-4 py-2 font-bold">✏️ Cần cố gắng</th>
+          <th class="px-4 py-2 text-center font-bold">✨ Nhận xét Cô Hoa</th>
         </tr>
       </thead>
       <tbody id="student-table-body" class="divide-y divide-gray-200 bg-white"></tbody>
@@ -72,7 +73,7 @@
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // Danh sách 57 HS chuẩn
+    // Danh sách HS
     const studentList = [
       "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh","Nguyễn Huy Bảo Anh",
       "Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi","Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí",
@@ -93,12 +94,21 @@
 
     // Xếp loại
     function getRanking(score) {
-      if (score === null || score === "") return { rank:"Chưa đạt", color:"bg-gray-200 text-gray-700" };
+      if (score === null || score === "") return { rank:"Chưa có", color:"bg-gray-200 text-gray-700" };
       if (score >= 87) return { rank:"Xuất sắc", color:"bg-green-100 text-green-800" };
       if (score >= 80) return { rank:"Tốt", color:"bg-blue-100 text-blue-800" };
       if (score >= 65) return { rank:"Khá", color:"bg-yellow-100 text-yellow-800" };
       if (score >= 50) return { rank:"Đạt", color:"bg-orange-100 text-orange-800" };
       return { rank:"Chưa đạt", color:"bg-red-100 text-red-800" };
+    }
+
+    // Tạo nhận xét "Cô Hoa AI"
+    function generateAdvice(adv, iss) {
+      let advice = "";
+      if (adv) advice += `Cô khen con ${adv}. `;
+      if (iss) advice += `Nhưng cần chú ý: ${iss}. `;
+      if (!adv && !iss) advice = "Cô mong con nỗ lực hơn trong tuần tới.";
+      return advice.trim();
     }
 
     // Render bảng
@@ -116,7 +126,7 @@
       studentList.forEach(name=>{
         if(!studentData[name]) studentData[name] = {};
         if(!studentData[name][selectedMonth]) studentData[name][selectedMonth] = {};
-        if(!studentData[name][selectedMonth][selectedWeek]) studentData[name][selectedMonth][selectedWeek] = {score:null,adv:"",iss:""};
+        if(!studentData[name][selectedMonth][selectedWeek]) studentData[name][selectedMonth][selectedWeek] = {score:null,adv:"",iss:"",advice:""};
         const data = studentData[name][selectedMonth][selectedWeek];
         const ranking = getRanking(data.score);
 
@@ -129,7 +139,8 @@
           <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-green-800" rows="2"
             onchange="updateData('${name}','adv',this.value)">${data.adv}</textarea></td>
           <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-pink-600" rows="2"
-            onchange="updateData('${name}','iss',this.value)">${data.iss}</textarea></td>`;
+            onchange="updateData('${name}','iss',this.value)">${data.iss}</textarea></td>
+          <td class="px-2 py-2 text-center"><button class="text-xl hover:scale-125" onclick="getAdvice('${name}')">✨</button></td>`;
         tableBody.appendChild(tr);
       });
     }
@@ -145,6 +156,16 @@
       renderTable();
     };
 
+    // Nhận xét Cô Hoa AI
+    window.getAdvice=(name)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      const d=studentData[name][m][w];
+      const advice=generateAdvice(d.adv,d.iss);
+      alert(`Nhận xét của Cô Hoa:\n\n${advice}`);
+      studentData[name][m][w].advice=advice;
+      setDoc(dataDocRef,{studentData},{merge:true});
+    };
+
     // Load realtime từ Firestore
     onSnapshot(dataDocRef,(docSnap)=>{
       if(docSnap.exists()) studentData=docSnap.data().studentData;
@@ -158,16 +179,16 @@
     // Xuất Excel
     window.exportExcel=(type)=>{
       const m=monthSelect.value,w=weekSelect.value;
-      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng"]]; let i=1;
+      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng","Nhận xét Cô Hoa"]]; let i=1;
       studentList.forEach(name=>{
         if(studentData[name] && studentData[name][m]){
           if(type==="week"){
             const d=studentData[name][m][w]; if(!d) return;
-            aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss]);
+            aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
           } else {
             weeks.forEach(ww=>{
               const d=studentData[name][m][ww]; if(!d) return;
-              aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss]);
+              aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
             });
           }
         }
