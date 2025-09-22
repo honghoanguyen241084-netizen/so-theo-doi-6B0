@@ -1,80 +1,63 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sổ Theo Dõi Thi Đua - Lớp 6B0</title>
-
-  <!-- Tailwind & Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-
-  <!-- XLSX for export -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <style>
-    body{ font-family:'Inter',sans-serif; background:#f9fafb; }
-    .award-card{ background:#fff; border-radius:12px; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,.08); transition:transform .2s }
-    .award-card:hover{ transform:translateY(-3px) }
-    textarea{ min-height:48px }
+    body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+    .award-card { background:#fff; border-radius:12px; padding:1rem; box-shadow:0 4px 6px rgba(0,0,0,.1); transition:transform .2s }
+    .award-card:hover { transform:translateY(-4px) }
   </style>
 </head>
 <body class="p-4 md:p-6">
 
   <!-- Header -->
   <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl shadow-lg p-6 mb-6">
-    <div class="flex items-center justify-between gap-4 flex-wrap">
-      <div>
-        <h1 class="text-3xl md:text-4xl font-extrabold">📘 Sổ Theo Dõi Thi Đua - Lớp 6B0</h1>
-        <p class="text-indigo-100 mt-1 text-lg">Năm học 2025 - 2026</p>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="exportExcel('week')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tuần)</button>
-        <button onclick="exportExcel('month')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tháng)</button>
-      </div>
-    </div>
+    <h1 class="text-4xl font-extrabold">📘 Sổ Theo Dõi Thi Đua - Lớp 6B0</h1>
+    <p class="text-indigo-200 mt-1 text-lg">Năm học 2025 - 2026</p>
   </div>
 
   <!-- Controls -->
   <div class="flex flex-wrap items-center gap-3 mb-6">
-    <select id="month-select" class="p-2 rounded border border-gray-300 bg-white"></select>
-    <select id="week-select" class="p-2 rounded border border-gray-300 bg-white"></select>
+    <select id="month-select" class="p-2 rounded border border-gray-300"></select>
+    <select id="week-select" class="p-2 rounded border border-gray-300"></select>
+    <button onclick="exportExcel('week')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tuần)</button>
+    <button onclick="exportExcel('month')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">📥 Xuất Excel (Tháng)</button>
   </div>
 
-  <!-- Table -->
-  <div class="overflow-x-auto bg-white rounded-xl shadow">
-    <table class="min-w-full">
+  <!-- Student Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full border rounded-xl overflow-hidden shadow">
       <thead class="bg-indigo-50">
         <tr>
           <th class="px-4 py-2 text-left font-bold">Học sinh</th>
-          <th class="px-2 py-2 text-center font-bold w-20">Điểm</th>
-          <th class="px-2 py-2 text-center font-bold w-28">Xếp loại</th>
+          <th class="px-4 py-2 text-center font-bold w-24">Điểm</th>
+          <th class="px-4 py-2 text-center font-bold w-32">Xếp loại</th>
           <th class="px-4 py-2 font-bold">👍 Ưu điểm</th>
           <th class="px-4 py-2 font-bold">✏️ Cần cố gắng</th>
-          <th class="px-2 py-2 text-center font-bold w-20">✨</th>
-          <th class="px-2 py-2 text-center font-bold w-16">🗑️</th>
+          <th class="px-4 py-2 text-center font-bold">✨ Nhận xét Cô Hoa</th>
         </tr>
       </thead>
-      <tbody id="student-table-body" class="divide-y divide-gray-100"></tbody>
+      <tbody id="student-table-body" class="divide-y divide-gray-200 bg-white"></tbody>
     </table>
   </div>
 
-  <!-- Awards -->
+  <!-- Awards Section -->
   <div class="mt-10 text-center">
-    <button onclick="generateAwards()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold shadow hover:scale-105">
-      🏆 Tổng kết & Danh hiệu tuần
-    </button>
+    <button onclick="generateAwards()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold shadow hover:scale-105">🏆 Tổng kết & Trao danh hiệu tuần</button>
     <div id="awards-container" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
   </div>
 
-  <!-- Firebase App -->
+  <!-- Firebase + Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, doc, setDoc, onSnapshot, updateDoc, deleteField
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // === Firebase config ===
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
       authDomain: "banthidua6b0.firebaseapp.com",
@@ -84,12 +67,11 @@
       appId: "1:743525041700:web:c76f51122303762212bab1",
       measurementId: "G-KK8BHC3E12"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // === Danh sách học sinh ===
+    // Danh sách HS (57 + Huy, Trí)
     const studentList = [
       "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh","Nguyễn Huy Bảo Anh",
       "Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi","Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí",
@@ -104,177 +86,140 @@
     ];
 
     const months = ["Tháng 9","Tháng 10","Tháng 11","Tháng 12","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5"];
-    const weeks  = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
+    const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
 
     let studentData = {};
 
-    function getRanking(score){
-      if (score === null || score === "") return {rank:"Chưa có", color:"bg-gray-100 text-gray-600"};
-      if (score >= 87) return {rank:"Xuất sắc", color:"bg-green-100 text-green-800"};
-      if (score >= 80) return {rank:"Tốt",      color:"bg-blue-100 text-blue-800"};
-      if (score >= 65) return {rank:"Khá",      color:"bg-yellow-100 text-yellow-800"};
-      if (score >= 50) return {rank:"Đạt",      color:"bg-orange-100 text-orange-800"};
-      return {rank:"Chưa đạt", color:"bg-red-100 text-red-800"};
+    // Xếp loại
+    function getRanking(score) {
+      if (score === null || score === "") return { rank:"Chưa có", color:"bg-gray-200 text-gray-700" };
+      if (score >= 87) return { rank:"Xuất sắc", color:"bg-green-100 text-green-800" };
+      if (score >= 80) return { rank:"Tốt", color:"bg-blue-100 text-blue-800" };
+      if (score >= 65) return { rank:"Khá", color:"bg-yellow-100 text-yellow-800" };
+      if (score >= 50) return { rank:"Đạt", color:"bg-orange-100 text-orange-800" };
+      return { rank:"Chưa đạt", color:"bg-red-100 text-red-800" };
     }
 
-    function generateAdvice(adv, iss){
-      let s = "";
-      if (adv) s += `Cô khen con ${adv.trim()}. `;
-      if (iss) s += `Nhưng cần chú ý: ${iss.trim()}. `;
-      if (!adv && !iss) s = "Cô mong con nỗ lực hơn trong tuần tới nhé.";
-      return s.trim();
-    }
+    // Render bảng
+    const monthSelect=document.getElementById("month-select");
+    const weekSelect=document.getElementById("week-select");
+    const tableBody=document.getElementById("student-table-body");
 
-    const monthSelect = document.getElementById("month-select");
-    const weekSelect  = document.getElementById("week-select");
-    const tableBody   = document.getElementById("student-table-body");
-    const awardsContainer = document.getElementById("awards-container");
-
-    months.forEach(m => { const o = document.createElement("option"); o.value=m; o.textContent=m; monthSelect.appendChild(o); });
-    weeks.forEach(w  => { const o = document.createElement("option"); o.value=w; o.textContent=w; weekSelect.appendChild(o); });
-
-    monthSelect.value = "Tháng 9";
-    weekSelect.value  = "Tuần 1";
-    monthSelect.addEventListener("change", renderTable);
-    weekSelect.addEventListener("change", renderTable);
+    months.forEach(m => { let o=document.createElement("option"); o.value=m;o.textContent=m;monthSelect.appendChild(o); });
+    weeks.forEach(w => { let o=document.createElement("option"); o.value=w;o.textContent=w;weekSelect.appendChild(o); });
 
     function renderTable(){
-      const m = monthSelect.value;
-      const w = weekSelect.value;
-      tableBody.innerHTML = "";
-
-      studentList.forEach((name, idx) => {
-        if (!studentData[name]) studentData[name] = {};
-        if (!studentData[name][m]) studentData[name][m] = {};
-        if (!studentData[name][m][w]) studentData[name][m][w] = { score:null, adv:"", iss:"", advice:"" };
-
-        const d = studentData[name][m][w];
-        const rk = getRanking(d.score);
-
-        const tr = document.createElement("tr");
-        tr.className = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
-        tr.innerHTML = `
+      const m=monthSelect.value, w=weekSelect.value;
+      tableBody.innerHTML="";
+      studentList.forEach(name=>{
+        const d=studentData?.[name]?.[m]?.[w] || {score:null, adv:"", iss:"", advice:""};
+        const ranking=getRanking(d.score);
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
           <td class="px-4 py-2">${name}</td>
           <td class="px-2 py-2 text-center">
-            <input type="number" value="${d.score ?? ""}" class="w-16 p-1 border rounded text-center"
-              onchange="updateData('${name}','score',this.value)" />
+            <input type="number" value="${d.score??""}" class="w-20 p-1 border rounded text-center"
+              onchange="updateData('${name}','score',this.value)">
           </td>
           <td class="px-2 py-2 text-center">
-            <span class="px-3 py-1 rounded-full text-sm font-semibold ${rk.color}">${rk.rank}</span>
+            <span class="px-2 py-1 rounded-full ${ranking.color}">${ranking.rank}</span>
           </td>
-          <td class="px-4 py-2">
-            <textarea class="w-full border rounded px-2 py-1 text-green-800"
-              onchange="updateData('${name}','adv',this.value)">${d.adv ?? ""}</textarea>
-          </td>
-          <td class="px-4 py-2">
-            <textarea class="w-full border rounded px-2 py-1 text-pink-600"
-              onchange="updateData('${name}','iss',this.value)">${d.iss ?? ""}</textarea>
-          </td>
+          <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-green-800" rows="2"
+            onchange="updateData('${name}','adv',this.value)">${d.adv||""}</textarea></td>
+          <td class="px-2 py-2"><textarea class="w-full border rounded p-1 text-pink-600" rows="2"
+            onchange="updateData('${name}','iss',this.value)">${d.iss||""}</textarea></td>
           <td class="px-2 py-2 text-center">
-            <button class="text-2xl hover:scale-125 transition" onclick="getAdvice('${name}')">✨</button>
-          </td>
-          <td class="px-2 py-2 text-center">
-            <button class="text-lg hover:scale-125 transition text-red-500" onclick="clearData('${name}')">🗑️</button>
-          </td>
-        `;
+            <button onclick="getAdvice('${name}')" class="text-2xl hover:scale-125 transition">✨</button>
+          </td>`;
         tableBody.appendChild(tr);
       });
     }
 
-    let saveTimer;
-    window.updateData = (name, field, value) => {
-      const m = monthSelect.value, w = weekSelect.value;
-      if (field === "score") value = value === "" ? null : Number(value);
+    // Cập nhật dữ liệu từng field (không ghi đè toàn bộ)
+    window.updateData = async (name,field,value)=>{
+      const m=monthSelect.value, w=weekSelect.value;
+      if(field==="score") value=value===""?null:Number(value);
       if (!studentData[name]) studentData[name] = {};
       if (!studentData[name][m]) studentData[name][m] = {};
-      if (!studentData[name][m][w]) studentData[name][m][w] = { score:null, adv:"", iss:"", advice:"" };
-      studentData[name][m][w][field] = value;
-
-      const path = `studentData.${name}.${m}.${w}.${field}`;
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
-        setDoc(dataDocRef, { [path]: value }, { merge: true });
-      }, 250);
+      if (!studentData[name][m][w]) studentData[name][m][w] = {score:null,adv:"",iss:"",advice:""};
+      studentData[name][m][w][field]=value;
+      await updateDoc(dataDocRef,{[`studentData.${name}.${m}.${w}.${field}`]:value});
       renderTable();
     };
 
-    window.getAdvice = (name) => {
-      const m = monthSelect.value, w = weekSelect.value;
-      const d = studentData[name]?.[m]?.[w] || { adv:"", iss:"" };
-      const advice = generateAdvice(d.adv, d.iss);
-      const path = `studentData.${name}.${m}.${w}.advice`;
-      setDoc(dataDocRef, { [path]: advice }, { merge: true });
+    // Sinh nhận xét
+    function generateAdvice(adv,iss){
+      let msg="";
+      if(adv) msg+=`Cô khen con ${adv}. `;
+      if(iss) msg+=`Con cần chú ý: ${iss}. `;
+      if(!adv && !iss) msg="Cô mong con sẽ cố gắng hơn nữa trong tuần tới!";
+      return msg.trim();
+    }
+    window.getAdvice=async (name)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      const d=studentData[name]?.[m]?.[w]||{adv:"",iss:""};
+      const advice=generateAdvice(d.adv,d.iss);
       alert(`Nhận xét của Cô Hoa:\n\n${advice}`);
+      await updateDoc(dataDocRef,{[`studentData.${name}.${m}.${w}.advice`]:advice});
     };
 
-    // === Xoá dữ liệu của 1 học sinh trong tuần ===
-    window.clearData = async (name) => {
-      const m = monthSelect.value, w = weekSelect.value;
-      if (!confirm(`Xoá toàn bộ dữ liệu tuần này của ${name}?`)) return;
-      await updateDoc(dataDocRef, { [`studentData.${name}.${m}.${w}`]: deleteField() });
-    };
-
-    onSnapshot(dataDocRef, (snap) => {
-      studentData = snap.exists() ? (snap.data().studentData || {}) : {};
+    // Nghe realtime
+    onSnapshot(dataDocRef,(snap)=>{
+      if(snap.exists()) studentData=snap.data().studentData||{};
+      else studentData={};
       renderTable();
     });
 
-    window.exportExcel = (type) => {
-      const m = monthSelect.value, w = weekSelect.value;
-      let aoa;
-      if (type === "week") {
-        aoa = [["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng","Nhận xét"]];
-      } else {
-        aoa = [["STT","Họ và tên","Tuần","Điểm","Xếp loại","Ưu điểm","Cần cố gắng","Nhận xét"]];
-      }
-      let stt=1;
-      studentList.forEach((name) => {
-        const mData = studentData[name]?.[m] || {};
-        if (type==="week") {
-          const d = mData[w]; if (!d) return;
-          aoa.push([stt++, name, d.score??"", getRanking(d.score).rank, d.adv??"", d.iss??"", d.advice??""]);
-        } else {
-          weeks.forEach((wk)=> {
-            const d=mData[wk]; if (!d) return;
-            aoa.push([stt++, name, wk, d.score??"", getRanking(d.score).rank, d.adv??"", d.iss??"", d.advice??""]);
-          });
+    monthSelect.value=months[0]; weekSelect.value=weeks[0];
+    monthSelect.onchange=renderTable; weekSelect.onchange=renderTable;
+
+    // Xuất Excel
+    window.exportExcel=(type)=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng","Nhận xét Cô Hoa"]];
+      let i=1;
+      studentList.forEach(name=>{
+        if(studentData[name] && studentData[name][m]){
+          if(type==="week"){
+            const d=studentData[name][m][w]; if(!d) return;
+            aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
+          } else {
+            weeks.forEach(ww=>{
+              const d=studentData[name][m][ww]; if(!d) return;
+              aoa.push([i++,name,d.score,getRanking(d.score).rank,d.adv,d.iss,d.advice||""]);
+            });
+          }
         }
       });
-      const ws = XLSX.utils.aoa_to_sheet(aoa);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "ThiDua");
-      XLSX.writeFile(wb, `ThiDua_${m}_${type}.xlsx`);
+      const ws=XLSX.utils.aoa_to_sheet(aoa); const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Thi đua");
+      XLSX.writeFile(wb,`ThiDua_${m}_${type}.xlsx`);
     };
 
-    window.generateAwards = () => {
-      const m = monthSelect.value, w = weekSelect.value;
-      const awards={excellent:[],hardworking:[],progressive:[],disciplined:[]};
-      studentList.forEach((name)=>{
-        const cur=studentData[name]?.[m]?.[w]; if (!cur) return;
-        if (cur.score>=87) awards.excellent.push(name);
-        if ((cur.adv||"").toLowerCase().includes("phát biểu")||(cur.adv||"").includes("10")) awards.hardworking.push(name);
-        if (!cur.iss) awards.disciplined.push(name);
-        const idx=weeks.indexOf(w);
-        if (idx>0){ const prev=studentData[name]?.[m]?.[weeks[idx-1]];
-          if (prev && cur.score!=null && prev.score!=null && cur.score>prev.score)
-            awards.progressive.push(`${name} (+${cur.score-prev.score}đ)`);
-        }
+    // Danh hiệu
+    const awardsContainer=document.getElementById("awards-container");
+    window.generateAwards=()=>{
+      const m=monthSelect.value,w=weekSelect.value;
+      let awards={excellent:[],hardworking:[],disciplined:[]};
+      studentList.forEach(name=>{
+        const d=studentData[name]?.[m]?.[w]; if(!d) return;
+        if(d.score>=87) awards.excellent.push(name);
+        if(d.adv?.toLowerCase().includes("phát biểu")||d.adv?.includes("10")) awards.hardworking.push(name);
+        if(!d.iss) awards.disciplined.push(name);
       });
       awardsContainer.innerHTML="";
-      function box(title,list){
-        const div=document.createElement("div"); div.className="award-card";
-        div.innerHTML=`<h3 class="font-bold mb-2">${title}</h3>`+
-        (list.length?`<ul class="list-disc list-inside">${list.map(n=>`<li>${n}</li>`).join("")}</ul>`:
-        `<p class="text-gray-400 italic">Chưa có</p>`);
-        awardsContainer.appendChild(div);
-      }
-      box("Ngôi sao học tập ⭐",awards.excellent);
-      box("Ong chăm chỉ 🐝",awards.hardworking);
-      box("Chiến binh tiến bộ 🚀",awards.progressive);
-      box("Hiệp sĩ nề nếp 🛡️",awards.disciplined);
+      const arr=[
+        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent},
+        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking},
+        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined}
+      ];
+      arr.forEach(a=>{
+        const card=document.createElement("div"); card.className="award-card";
+        let html=`<h3 class="font-bold mb-2">${a.title}</h3>`;
+        html+=a.list.length? `<ul>${a.list.map(n=>`<li>${n}</li>`).join("")}</ul>` : `<p class="text-gray-400 italic">Chưa có</p>`;
+        card.innerHTML=html; awardsContainer.appendChild(card);
+      });
     };
-
-    renderTable();
   </script>
 </body>
 </html>
