@@ -9,9 +9,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-    .award-card {background:#fff;border-radius:12px;padding:1rem;
+    .award-card{background:#fff;border-radius:12px;padding:1rem;
       box-shadow:0 4px 6px rgba(0,0,0,.1);transition:transform .2s}
-    .award-card:hover {transform:translateY(-4px)}
+    .award-card:hover{transform:translateY(-4px)}
   </style>
 </head>
 <body class="p-4 md:p-6">
@@ -57,7 +57,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 🔑 Firebase config (copy đúng từ Firebase console)
+    // 🔑 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
       authDomain: "banthidua6b0.firebaseapp.com",
@@ -67,11 +67,12 @@
       appId: "1:743525041700:web:c76f51122303762212bab1",
       measurementId: "G-KK8BHC3E12"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // Danh sách 57 HS
+    // Danh sách 57 HS chuẩn
     const studentList = [
       "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh","Nguyễn Huy Bảo Anh",
       "Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi","Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí",
@@ -87,6 +88,7 @@
 
     const months = ["Tháng 9","Tháng 10","Tháng 11","Tháng 12","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5"];
     const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
+
     let studentData = {};
 
     // Xếp loại
@@ -132,18 +134,18 @@
       });
     }
 
-    // Auto-save (debounce 300ms)
+    // Auto-save
     let saveTimer;
     window.updateData=(name,field,value)=>{
       const m=monthSelect.value,w=weekSelect.value;
       if(field==="score") value=value===""?null:Number(value);
       studentData[name][m][w][field]=value;
       clearTimeout(saveTimer);
-      saveTimer=setTimeout(()=>setDoc(dataDocRef,{studentData},{merge:true}),300);
+      saveTimer=setTimeout(()=>setDoc(dataDocRef,{studentData}, {merge:true}),300);
       renderTable();
     };
 
-    // Load dữ liệu từ Firestore
+    // Load realtime từ Firestore
     onSnapshot(dataDocRef,(docSnap)=>{
       if(docSnap.exists()) studentData=docSnap.data().studentData;
       else studentData={};
@@ -156,8 +158,7 @@
     // Xuất Excel
     window.exportExcel=(type)=>{
       const m=monthSelect.value,w=weekSelect.value;
-      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng"]];
-      let i=1;
+      let aoa=[["STT","Họ và tên","Điểm","Xếp loại","Ưu điểm","Cần cố gắng"]]; let i=1;
       studentList.forEach(name=>{
         if(studentData[name] && studentData[name][m]){
           if(type==="week"){
@@ -189,15 +190,15 @@
       });
       awardsContainer.innerHTML="";
       const arr=[
-        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent},
-        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking},
-        {id:"progressive",title:"Chiến binh tiến bộ 🚀",list:awards.progressive},
-        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined}
+        {id:"excellent",title:"Ngôi sao học tập ⭐",list:awards.excellent,color:"from-green-400 to-cyan-500"},
+        {id:"hardworking",title:"Ong chăm chỉ 🐝",list:awards.hardworking,color:"from-yellow-400 to-orange-500"},
+        {id:"progressive",title:"Chiến binh tiến bộ 🚀",list:awards.progressive,color:"from-blue-400 to-violet-500"},
+        {id:"disciplined",title:"Hiệp sĩ nề nếp 🛡️",list:awards.disciplined,color:"from-pink-500 to-rose-500"}
       ];
       arr.forEach(a=>{
-        const card=document.createElement("div"); card.className="award-card";
+        const card=document.createElement("div"); card.className="award-card bg-gradient-to-r "+a.color+" text-white";
         let html=`<h3 class="font-bold mb-2">${a.title}</h3>`;
-        html+=a.list.length? `<ul>${a.list.map(n=>`<li>${n}</li>`).join("")}</ul>` : `<p class="text-gray-400 italic">Chưa có học sinh nào</p>`;
+        html+=a.list.length? `<ul>${a.list.map(n=>`<li>${n}</li>`).join("")}</ul>` : `<p class="italic">Chưa có học sinh nào</p>`;
         card.innerHTML=html; awardsContainer.appendChild(card);
       });
     };
