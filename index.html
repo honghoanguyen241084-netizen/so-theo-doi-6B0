@@ -9,24 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f9fafb;
-    }
-
-    .loader {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #4f46e5;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg) }
-      100% { transform: rotate(360deg) }
-    }
+    body { font-family: 'Inter', sans-serif; background: #f9fafb; }
+    textarea { min-height: 48px; }
   </style>
 </head>
 
@@ -42,7 +26,6 @@
     <div class="flex flex-wrap gap-3 justify-center mb-6">
       <select id="month-select" class="border p-2 rounded-lg shadow bg-white"></select>
       <select id="week-select" class="border p-2 rounded-lg shadow bg-white"></select>
-      <button onclick="save()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow">💾 Lưu dữ liệu</button>
       <button onclick="exportExcel('week')" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow">📤 Xuất Excel (Tuần)</button>
       <button onclick="exportExcel('month')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">📤 Xuất Excel (Tháng)</button>
     </div>
@@ -64,20 +47,12 @@
     </div>
   </div>
 
-  <!-- Loading Modal -->
-  <div id="loading-modal" class="fixed inset-0 bg-gray-600 bg-opacity-70 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-      <div class="loader mx-auto"></div>
-      <p id="loading-text" class="mt-3 text-gray-700 font-medium">Đang lưu dữ liệu...</p>
-    </div>
-  </div>
-
   <!-- Firebase & Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-    // Firebase config của bạn
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBnKAyxQmObrNr8BtKz50uGpDDcHHFSJxA",
       authDomain: "banthidua6b0.firebaseapp.com",
@@ -92,80 +67,34 @@
     const db = getFirestore(app);
     const dataDocRef = doc(db, "classData", "lop6B0");
 
-    // Danh sách 57 HS + Nguyễn Minh Trí + Nguyễn Quang Huy
+    // Danh sách 57 HS (chuẩn từ file) + Nguyễn Minh Trí, Nguyễn Quang Huy
     const studentList = [
-      { name: "Nguyễn Đặng Minh An", gender: "Nữ" },
-      { name: "Cung Đức Anh", gender: "Nam" },
-      { name: "Trần Quỳnh Anh", gender: "Nữ" },
-      { name: "Nguyễn Diệp Anh", gender: "Nữ" },
-      { name: "Hoàng Mai Anh", gender: "Nữ" },
-      { name: "Nguyễn Huy Bảo Anh", gender: "Nam" },
-      { name: "Nguyễn Gia Bảo", gender: "Nam" },
-      { name: "Trịnh Quang Bảo", gender: "Nam" },
-      { name: "Lại Thảo Chi", gender: "Nữ" },
-      { name: "Phạm Lam Chi", gender: "Nữ" },
-      { name: "Nguyễn Khánh Chi", gender: "Nữ" },
-      { name: "Nguyễn Đỗ Minh Chí", gender: "Nam" },
-      { name: "Phạm Khương Duy", gender: "Nam" },
-      { name: "Trần Nguyên Duy", gender: "Nam" },
-      { name: "Đỗ Quốc Đạt", gender: "Nam" },
-      { name: "Lê Tiến Đạt", gender: "Nam" },
-      { name: "Quách Trung Đức", gender: "Nam" },
-      { name: "Phạm Minh Đức", gender: "Nam" },
-      { name: "Lại Tiến Đức", gender: "Nam" },
-      { name: "Trần Ngọc Hân", gender: "Nữ" },
-      { name: "Cao Hoàng", gender: "Nam" },
-      { name: "Cung Đức Huy", gender: "Nam" },
-      { name: "Nguyễn Minh Khuê", gender: "Nữ" },
-      { name: "Hoàng Mi Lan", gender: "Nữ" },
-      { name: "Vũ My Lan", gender: "Nữ" },
-      { name: "Đàm Gia Linh", gender: "Nữ" },
-      { name: "Lê Thảo Linh", gender: "Nữ" },
-      { name: "Đặng Thành Minh", gender: "Nam" },
-      { name: "Vương Quang Minh", gender: "Nam" },
-      { name: "Vũ Trần Tiến Minh", gender: "Nam" },
-      { name: "Đầu Đại Minh", gender: "Nam" },
-      { name: "Đặng Gia Minh", gender: "Nam" },
-      { name: "Ngô Hoàng My", gender: "Nữ" },
-      { name: "Đặng Kim Ngân", gender: "Nữ" },
-      { name: "Nguyễn Khánh Ngọc", gender: "Nữ" },
-      { name: "Bùi Bảo Nguyên", gender: "Nam" },
-      { name: "Lý Hoàng Minh Nhật", gender: "Nam" },
-      { name: "Ngô Hải Minh", gender: "Nam" },
-      { name: "Dương Yến Nhi", gender: "Nữ" },
-      { name: "Vũ Khánh Nhi", gender: "Nữ" },
-      { name: "Trịnh Nam Phong", gender: "Nam" },
-      { name: "Nguyễn Hà Phương", gender: "Nữ" },
-      { name: "Dương Đại Quang", gender: "Nam" },
-      { name: "Mai Tiến Thành", gender: "Nam" },
-      { name: "Trần Ngọc Thảo", gender: "Nữ" },
-      { name: "Đặng Anh Thư", gender: "Nữ" },
-      { name: "Nguyễn Quang Thiện", gender: "Nam" },
-      { name: "Nguyễn Đình Thi", gender: "Nam" },
-      { name: "Trần Phương Thảo", gender: "Nữ" },
-      { name: "Trịnh Ngọc Minh Trang", gender: "Nữ" },
-      { name: "Nguyễn Bảo Trâm", gender: "Nữ" },
-      { name: "Nguyễn Đức Trí", gender: "Nam" },
-      { name: "Nguyễn Minh Trí", gender: "Nam" },
-      { name: "Nguyễn Quang Huy", gender: "Nam" },
-      { name: "Trần Trung", gender: "Nam" },
-      { name: "Trần Quang Vinh", gender: "Nam" },
-      { name: "Lương Uyên Bảo Trân", gender: "Nữ" },
-      { name: "Nguyễn Quang Vinh", gender: "Nam" }
+      "Nguyễn Đặng Minh An","Cung Đức Anh","Trần Quỳnh Anh","Nguyễn Diệp Anh","Hoàng Mai Anh",
+      "Nguyễn Huy Bảo Anh","Nguyễn Gia Bảo","Trịnh Quang Bảo","Lại Thảo Chi","Phạm Lam Chi",
+      "Nguyễn Khánh Chi","Nguyễn Đỗ Minh Chí","Phạm Khương Duy","Trần Nguyên Duy","Đỗ Quốc Đạt",
+      "Lê Tiến Đạt","Quách Trung Đức","Phạm Minh Đức","Lại Tiến Đức","Trần Ngọc Hân",
+      "Cao Hoàng","Cung Đức Huy","Nguyễn Minh Khuê","Hoàng Mi Lan","Vũ My Lan",
+      "Đàm Gia Linh","Lê Thảo Linh","Đặng Thành Minh","Vương Quang Minh","Vũ Trần Tiến Minh",
+      "Đầu Đại Minh","Đặng Gia Minh","Ngô Hoàng My","Đặng Kim Ngân","Nguyễn Khánh Ngọc",
+      "Bùi Bảo Nguyên","Lý Hoàng Minh Nhật","Ngô Hải Minh","Dương Yến Nhi","Vũ Khánh Nhi",
+      "Trịnh Nam Phong","Nguyễn Hà Phương","Dương Đại Quang","Mai Tiến Thành","Trần Ngọc Thảo",
+      "Đặng Anh Thư","Nguyễn Quang Thiện","Nguyễn Đình Thi","Trần Phương Thảo","Trịnh Ngọc Minh Trang",
+      "Nguyễn Bảo Trâm","Nguyễn Đức Trí","Nguyễn Minh Trí","Nguyễn Quang Huy","Trần Trung",
+      "Trần Quang Vinh","Lương Uyên Bảo Trân","Nguyễn Quang Vinh"
     ];
 
     const months = Array.from({ length: 9 }, (_, i) => `Tháng ${i + 9 > 12 ? i + 9 - 12 : i + 9}`);
-    const weeks = ["Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4", "Tuần 5"];
+    const weeks = ["Tuần 1","Tuần 2","Tuần 3","Tuần 4","Tuần 5"];
     let studentData = {};
 
     function generateInitialData() {
       const initial = {};
-      studentList.forEach(s => {
-        initial[s.name] = {};
+      studentList.forEach(n => {
+        initial[n] = {};
         months.forEach(m => {
-          initial[s.name][m] = {};
+          initial[n][m] = {};
           weeks.forEach(w => {
-            initial[s.name][m][w] = { score: null, advantages: "", issues: "" };
+            initial[n][m][w] = { score: null, advantages: "", issues: "" };
           });
         });
       });
@@ -182,14 +111,7 @@
     }
 
     async function save() {
-      document.getElementById("loading-text").textContent = "Đang lưu dữ liệu...";
-      document.getElementById("loading-modal").classList.remove("hidden");
-      document.getElementById("loading-modal").classList.add("flex");
       await setDoc(dataDocRef, { studentData }, { merge: true });
-      setTimeout(() => {
-        document.getElementById("loading-modal").classList.add("hidden");
-        document.getElementById("loading-modal").classList.remove("flex");
-      }, 600);
     }
 
     function listenForDataChanges() {
@@ -228,19 +150,16 @@
     function renderTable() {
       if (!monthSelect.value || !weekSelect.value) return;
       tableBody.innerHTML = "";
-      studentList.forEach((s, idx) => {
-        const data = studentData[s.name]?.[monthSelect.value]?.[weekSelect.value] || {};
+      studentList.forEach((name, idx) => {
+        const data = studentData[name]?.[monthSelect.value]?.[weekSelect.value] || {};
         const ranking = getRanking(data.score);
         const row = document.createElement("tr");
         row.className = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
         row.innerHTML = `
-          <td class="px-4 py-2">
-            <input type="text" value="${s.name}" onchange="updateData('${s.name}', 'name', this.value)" 
-              class="w-full border rounded px-2 py-1 text-gray-700 font-medium">
-          </td>
+          <td class="px-4 py-2">${name}</td>
           <td class="px-2 py-2 text-center">
             <input type="number" value="${data.score ?? ""}" 
-              onchange="updateData('${s.name}', 'score', this.value)" 
+              onchange="updateData('${name}', 'score', this.value)" 
               class="w-20 border rounded px-2 py-1 text-center font-semibold">
           </td>
           <td class="px-2 py-2 text-center">
@@ -251,18 +170,18 @@
               'bg-gray-100 text-gray-500'}">${ranking}</span>
           </td>
           <td class="px-4 py-2">
-            <textarea onchange="updateData('${s.name}', 'advantages', this.value)" 
+            <textarea onchange="updateData('${name}', 'advantages', this.value)" 
               class="w-full border rounded px-2 py-1 text-green-700">${data.advantages ?? ""}</textarea>
           </td>
           <td class="px-4 py-2">
-            <textarea onchange="updateData('${s.name}', 'issues', this.value)" 
+            <textarea onchange="updateData('${name}', 'issues', this.value)" 
               class="w-full border rounded px-2 py-1 text-pink-600">${data.issues ?? ""}</textarea>
           </td>`;
         tableBody.appendChild(row);
       });
     }
 
-    // Debounce auto-save
+    // Auto-save nhanh (debounce 300ms)
     let saveTimeout;
     window.updateData = (studentName, field, value) => {
       const m = monthSelect.value;
@@ -270,18 +189,10 @@
       if (!studentData[studentName]) studentData[studentName] = {};
       if (!studentData[studentName][m]) studentData[studentName][m] = {};
       if (!studentData[studentName][m][w]) studentData[studentName][m][w] = {};
-
       if (field === "score") value = value === "" ? null : Number(value);
-      if (field === "name") {
-        studentData[value] = studentData[studentName];
-        delete studentData[studentName];
-      } else {
-        studentData[studentName][m][w][field] = value;
-      }
-
+      studentData[studentName][m][w][field] = value;
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => save(), 500);
-
+      saveTimeout = setTimeout(() => save(), 300);
       renderTable();
     };
 
@@ -292,14 +203,14 @@
       if (type === "month") header.splice(2, 0, "Tuần");
       dataToExport.push(header);
       let stt = 1;
-      for (const s of studentList) {
+      for (const name of studentList) {
         if (type === "week") {
-          const d = studentData[s.name][m][w];
-          if (d) dataToExport.push([stt++, s.name, d.score, getRanking(d.score), d.advantages, d.issues]);
+          const d = studentData[name][m][w];
+          if (d) dataToExport.push([stt++, name, d.score, getRanking(d.score), d.advantages, d.issues]);
         } else {
           for (const wk of weeks) {
-            const d = studentData[s.name][m][wk];
-            if (d) dataToExport.push([stt++, s.name, wk, d.score, getRanking(d.score), d.advantages, d.issues]);
+            const d = studentData[name][m][wk];
+            if (d) dataToExport.push([stt++, name, wk, d.score, getRanking(d.score), d.advantages, d.issues]);
           }
         }
       }
